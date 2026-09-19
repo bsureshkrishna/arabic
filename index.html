@@ -10,10 +10,13 @@
 <body>
 <header class="topbar">
   <a class="brand" href="./"><span class="brand-mark">R</span><span><strong>Arabic Root Notebook</strong><small>200 roots · Latin script</small></span></a>
-  <div class="search-wrap">
-    <input id="search" type="search" autocomplete="off" placeholder="Search dunya, dunia, adna, peace, k-t-b…">
-    <span class="search-key">/</span>
-    <div id="searchResults" class="search-results" hidden></div>
+  <div class="search-tools">
+    <div class="search-wrap">
+      <input id="search" type="search" autocomplete="off" placeholder="Search dunya, dunia, adna, peace, k-t-b…">
+      <span class="search-key">/</span>
+      <div id="searchResults" class="search-results" hidden></div>
+    </div>
+    <button id="thanksBtn" class="thanks-btn" type="button" aria-haspopup="dialog" aria-controls="thanksDialog">Thanks to…</button>
   </div>
   <div class="view-toggle"><button id="bookMode" class="view-btn active">Book</button><button id="browseMode" class="view-btn">Browse</button></div>
 </header>
@@ -35,6 +38,22 @@
 <dialog id="tocDialog" class="toc-dialog">
 <form method="dialog" class="toc-head"><div><span class="eyebrow">Go to</span><h2>Root index</h2></div><button class="icon-btn" value="close">×</button></form>
 <div id="tocList" class="toc-list"></div>
+</dialog>
+
+<dialog id="thanksDialog" class="toc-dialog thanks-dialog" aria-labelledby="thanksTitle" aria-describedby="thanksTimeout">
+<form method="dialog" class="toc-head"><div><span class="eyebrow">Acknowledgements</span><h2 id="thanksTitle">Thanks to…</h2></div><button class="icon-btn" type="submit" value="close" aria-label="Close acknowledgements" autofocus>×</button></form>
+<div class="thanks-body">
+  <p class="thanks-intro">This notebook is made possible by these tools and the people behind them.</p>
+  <ul class="thanks-list">
+    <li><strong>StPageFlip</strong><span>The book’s page-turning animations.</span></li>
+    <li><strong>Fuse.js</strong><span>Flexible search across roots, words, and meanings.</span></li>
+    <li><strong>jsDelivr</strong><span>Delivering the JavaScript libraries.</span></li>
+    <li><strong>GitHub Pages</strong><span>Hosting this notebook on the web.</span></li>
+    <li><strong>CAMeL Lab</strong><span>Arabic frequency resources that inform the root selection, and CAMeL Tools for the optional ranking script.</span></li>
+  </ul>
+  <p class="thanks-special">And special thanks to <strong>GPT Astra</strong>.</p>
+  <p id="thanksTimeout" class="thanks-timeout">This popup closes automatically after 30 seconds. You can also close it with × or Escape.</p>
+</div>
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>

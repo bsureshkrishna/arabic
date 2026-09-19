@@ -4,8 +4,10 @@ const data=window.ROOT_DATA, roots=data.roots;
 const bookEl=$("#book"),gridEl=$("#grid"),bookView=$("#bookView"),browseView=$("#browseView"),
 bookMode=$("#bookMode"),browseMode=$("#browseMode"),search=$("#search"),searchResults=$("#searchResults"),
 prevBtn=$("#prevBtn"),nextBtn=$("#nextBtn"),tocBtn=$("#tocBtn"),tocDialog=$("#tocDialog"),
-tocList=$("#tocList"),position=$("#position"),currentRoot=$("#currentRoot");
+tocList=$("#tocList"),position=$("#position"),currentRoot=$("#currentRoot"),
+thanksBtn=$("#thanksBtn"),thanksDialog=$("#thanksDialog");
 let current=0, mode=localStorage.getItem("rootNotebookView")||"book", pageFlip=null, suppress=false;
+let thanksTimer=null;
 
 const slug=s=>s.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replaceAll("ʿ","ayn").replaceAll("ʾ","hamza").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
 
@@ -85,7 +87,13 @@ function setMode(next){
 function initial(){const h=location.hash.slice(1);const i=roots.findIndex(r=>slug(r.root)===h);return i<0?0:i}
 search.oninput=showSearch;search.onkeydown=e=>{if(e.key==="Escape"){searchResults.hidden=true;search.blur()} if(e.key==="Enter"){const f=$(".search-result",searchResults);if(f)f.click()}};
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))searchResults.hidden=true});
-document.addEventListener("keydown",e=>{if(e.target.matches("input,textarea,select"))return;if(e.key==="/"){e.preventDefault();search.focus()}if(e.key==="ArrowRight")navigate(1);if(e.key==="ArrowLeft")navigate(-1);if(e.key.toLowerCase()==="b")setMode("book");if(e.key.toLowerCase()==="g")setMode("browse")});
+document.addEventListener("keydown",e=>{if(thanksDialog.open||e.target.matches("input,textarea,select"))return;if(e.key==="/"){e.preventDefault();search.focus()}if(e.key==="ArrowRight")navigate(1);if(e.key==="ArrowLeft")navigate(-1);if(e.key.toLowerCase()==="b")setMode("book");if(e.key.toLowerCase()==="g")setMode("browse")});
 prevBtn.onclick=()=>navigate(-1);nextBtn.onclick=()=>navigate(1);bookMode.onclick=()=>setMode("book");browseMode.onclick=()=>setMode("browse");tocBtn.onclick=()=>tocDialog.showModal();
+thanksBtn.onclick=()=>{
+  clearTimeout(thanksTimer);
+  thanksDialog.showModal();
+  thanksTimer=setTimeout(()=>thanksDialog.close(),30_000);
+};
+thanksDialog.addEventListener("close",()=>{clearTimeout(thanksTimer);thanksTimer=null});
 window.addEventListener("resize",()=>updateUI(false));
 buildBook();buildBrowse();buildToc();current=initial();updateUI(false);setMode(mode);if(current)selectRoot(current,{scroll:true,flip:true});
