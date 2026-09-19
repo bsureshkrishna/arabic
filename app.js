@@ -22,7 +22,7 @@ function buildBook(){
   <div class="page intro-page"><div class="page-content"><span class="eyebrow">How to read it</span><h2>Start from the consonantal root.</h2><p>${data.selection.method}</p><div class="legend">${Object.entries(data.transliteration).map(([k,v])=>`<div><strong>${k}</strong> — ${v}</div>`).join("")}</div><p style="margin-top:22px;font-size:12px;color:#81786e">Use ← / →, search, or the root index. Arabic is intentionally presented in Latin transliteration.</p></div></div>${roots.map(rootPage).join("")}<div class="page back-cover" data-density="hard"><div class="page-content"><span class="eyebrow">End</span><h2>${roots.length} roots</h2><p>The same roots.js drives the physical book and the browse view.</p></div></div>`;
   pageFlip=new St.PageFlip(bookEl,{width:470,height:660,size:"stretch",minWidth:290,maxWidth:520,minHeight:440,maxHeight:730,maxShadowOpacity:.25,showCover:true,mobileScrollSupport:false,usePortrait:true,autoSize:true,drawShadow:true,flippingTime:600});
   pageFlip.loadFromHTML($$(".page",bookEl));
-  pageFlip.on("flip",e=>{if(suppress)return; current=Math.max(0,Math.min(roots.length-1,e.data-2)); updateUI(false)});
+  pageFlip.on("flip",e=>{if(suppress)return; current=Math.max(0,Math.min(roots.length-1,e.data-2)); updateUI()});
   pageFlip.on("changeOrientation",()=>updateUI(false));
 }
 // StPageFlip starts gestures before click; keep Hebrew controls native, including cloned pages.
@@ -96,4 +96,4 @@ thanksBtn.onclick=()=>{
 };
 thanksDialog.addEventListener("close",()=>{clearTimeout(thanksTimer);thanksTimer=null});
 window.addEventListener("resize",()=>updateUI(false));
-buildBook();buildBrowse();buildToc();current=initial();updateUI(false);setMode(mode);if(current)selectRoot(current,{scroll:true,flip:true});
+buildBook();buildBrowse();buildToc();current=initial();updateUI(false);setMode(mode);
