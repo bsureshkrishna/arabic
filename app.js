@@ -6,7 +6,7 @@ bookMode=$("#bookMode"),browseMode=$("#browseMode"),search=$("#search"),searchRe
 prevBtn=$("#prevBtn"),nextBtn=$("#nextBtn"),tocBtn=$("#tocBtn"),tocDialog=$("#tocDialog"),
 tocList=$("#tocList"),position=$("#position"),currentRoot=$("#currentRoot"),
 thanksBtn=$("#thanksBtn"),thanksDialog=$("#thanksDialog");
-let current=0, mode=localStorage.getItem("rootNotebookView")||"book", pageFlip=null, suppress=false;
+let current=0, bookPage=0, mode=localStorage.getItem("rootNotebookView")||"book", pageFlip=null;
 let thanksTimer=null;
 
 const slug=s=>s.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replaceAll("ʿ","ayn").replaceAll("ʾ","hamza").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
@@ -20,9 +20,9 @@ function rootPage(r,i){return `<div class="page root-page" data-root-index="${i}
 function buildBook(){
   bookEl.innerHTML=`<div class="page cover" data-density="hard"><div class="page-content"><div><div class="cover-kicker">A visual root book</div><h1>${data.title}</h1><p>${data.subtitle}. One root family per page, with Hebrew comparisons folded away until you want them.</p></div><div class="cover-bottom"><span>${roots.length} roots</span><span>open →</span></div></div></div>
   <div class="page intro-page"><div class="page-content"><span class="eyebrow">How to read it</span><h2>Start from the consonantal root.</h2><p>${data.selection.method}</p><div class="legend">${Object.entries(data.transliteration).map(([k,v])=>`<div><strong>${k}</strong> — ${v}</div>`).join("")}</div><p style="margin-top:22px;font-size:12px;color:#81786e">Use ← / →, search, or the root index. Arabic is intentionally presented in Latin transliteration.</p></div></div>${roots.map(rootPage).join("")}<div class="page back-cover" data-density="hard"><div class="page-content"><span class="eyebrow">End</span><h2>${roots.length} roots</h2><p>The same roots.js drives the physical book and the browse view.</p></div></div>`;
-  pageFlip=new St.PageFlip(bookEl,{width:470,height:660,size:"stretch",minWidth:290,maxWidth:520,minHeight:440,maxHeight:730,maxShadowOpacity:.25,showCover:true,mobileScrollSupport:false,usePortrait:true,autoSize:true,drawShadow:true,flippingTime:600});
+  pageFlip=new St.PageFlip(bookEl,{startPage:bookPage,width:470,height:660,size:"stretch",minWidth:290,maxWidth:520,minHeight:440,maxHeight:730,maxShadowOpacity:.25,showCover:true,mobileScrollSupport:false,usePortrait:true,autoSize:true,drawShadow:true,flippingTime:600});
   pageFlip.loadFromHTML($$(".page",bookEl));
-  pageFlip.on("flip",e=>{if(suppress)return; current=Math.max(0,Math.min(roots.length-1,e.data-2)); updateUI()});
+  pageFlip.on("flip",e=>{if(mode!=="book")return; bookPage=e.data; current=Math.max(0,Math.min(roots.length-1,bookPage-2)); updateUI()});
   pageFlip.on("changeOrientation",()=>updateUI(false));
 }
 // StPageFlip starts gestures before click; keep Hebrew controls native, including cloned pages.
@@ -63,28 +63,41 @@ function visiblePageCount(){
   return 1;
 }
 function navigate(direction){
+  if(mode==="book"&&pageFlip){
+    if(pageFlip.getState()==="flipping")return;
+    if(direction<0)pageFlip.flipPrev();else pageFlip.flipNext();
+    return;
+  }
   const step=visiblePageCount();
   selectRoot(current + direction*step,{scroll:true,flip:true});
 }
 function selectRoot(i,{scroll=false,flip=false}={}){
-  current=Math.max(0,Math.min(roots.length-1,i)); updateUI(true);
-  if(mode==="book"&&pageFlip&&flip){suppress=true;pageFlip.flip(pageIndex(current));setTimeout(()=>suppress=false,700)}
+  current=Math.max(0,Math.min(roots.length-1,i)); bookPage=pageIndex(current); updateUI(true);
+  if(mode==="book"&&pageFlip&&flip)pageFlip.flip(bookPage);
   if(mode==="browse"&&scroll)$(`.root-card[data-index="${current}"]`,gridEl)?.scrollIntoView({behavior:"smooth",block:"center"});
 }
 function updateUI(hash=true){
-  const visible=visiblePageCount();
-  const first=current+1, last=Math.min(roots.length,current+visible);
-  position.textContent=visible>1?`${first}–${last} / ${roots.length}`:`${first} / ${roots.length}`;
-  currentRoot.textContent=roots[current].root;prevBtn.disabled=current<=0;nextBtn.disabled=current>=roots.length-1;
+  const visible=visiblePageCount(), b=mode==="book";
+  const cover=b&&bookPage===0, intro=b&&bookPage===1&&visible===1, end=b&&bookPage===roots.length+2;
+  const first=b?Math.max(1,bookPage-1):current+1, last=Math.min(roots.length,b?bookPage+visible-2:current+visible);
+  position.textContent=cover||end?`${roots.length} roots`:intro?"Getting started":first<last?`${first}–${last} / ${roots.length}`:`${first} / ${roots.length}`;
+  currentRoot.textContent=cover?"Cover":intro?"Introduction":end?"Back cover":roots[current].root;
+  prevBtn.disabled=b?bookPage===0:current<=0;
+  nextBtn.disabled=b?bookPage+visible>=pageFlip.getPageCount():current>=roots.length-1;
   $$(".root-card",gridEl).forEach(c=>c.classList.toggle("selected",+c.dataset.index===current));
-  if(hash)history.replaceState(null,"",`#${slug(roots[current].root)}`);
+  if(hash){
+    const fragment=cover?"":intro?"#intro":end?"#end":`#${slug(roots[current].root)}`;
+    history.replaceState(null,"",location.pathname+location.search+fragment);
+  }
 }
 function setMode(next){
+  const targetPage=bookPage;
   mode=next;localStorage.setItem("rootNotebookView",mode);const b=mode==="book";bookView.hidden=!b;browseView.hidden=b;bookMode.classList.toggle("active",b);browseMode.classList.toggle("active",!b);
-  if(b&&pageFlip)setTimeout(()=>{suppress=true;pageFlip.flip(pageIndex(current));setTimeout(()=>suppress=false,700)},50);
+  if(b&&pageFlip){pageFlip.update();pageFlip.turnToPage(targetPage)}
   else if(!b)setTimeout(()=>$(`.root-card[data-index="${current}"]`,gridEl)?.scrollIntoView({block:"center"}),30);
+  updateUI();
 }
-function initial(){const h=location.hash.slice(1);const i=roots.findIndex(r=>slug(r.root)===h);return i<0?0:i}
+function initial(){const h=location.hash.slice(1);if(h==="intro")return 1;if(h==="end")return roots.length+2;const i=roots.findIndex(r=>slug(r.root)===h);return i<0?0:pageIndex(i)}
 search.oninput=showSearch;search.onkeydown=e=>{if(e.key==="Escape"){searchResults.hidden=true;search.blur()} if(e.key==="Enter"){const f=$(".search-result",searchResults);if(f)f.click()}};
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))searchResults.hidden=true});
 document.addEventListener("keydown",e=>{if(thanksDialog.open||e.target.matches("input,textarea,select"))return;if(e.key==="/"){e.preventDefault();search.focus()}if(e.key==="ArrowRight")navigate(1);if(e.key==="ArrowLeft")navigate(-1);if(e.key.toLowerCase()==="b")setMode("book");if(e.key.toLowerCase()==="g")setMode("browse")});
@@ -96,4 +109,5 @@ thanksBtn.onclick=()=>{
 };
 thanksDialog.addEventListener("close",()=>{clearTimeout(thanksTimer);thanksTimer=null});
 window.addEventListener("resize",()=>updateUI(false));
-buildBook();buildBrowse();buildToc();current=initial();updateUI(false);setMode(mode);
+bookPage=initial();current=Math.max(0,Math.min(roots.length-1,bookPage-2));if(bookPage===0)mode="book";
+buildBook();buildBrowse();buildToc();setMode(mode);

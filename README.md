@@ -7,7 +7,8 @@ Static site; no framework and no build step.
 - **Book** — physical page turns with StPageFlip.
 - **Browse** — CSS Grid cards.
 - Search/goto with Fuse.js.
-- Previous/Next buttons and left/right keys advance by the number of pages currently visible (1 in portrait, 2 in a book spread, 3+ columns in Browse when applicable).
+- A fresh visit starts on the cover; a saved root URL reopens its page or spread.
+- Previous/Next buttons and left/right keys turn the book through the cover, introduction, and root pages (1 page in portrait or a spread in landscape). Browse advances by its number of visible columns.
 - `/` focuses search.
 - `b` = book, `g` = browse.
 - Hebrew comparisons are collapsed on book pages.
