@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f1eadb">
+<title>Arabic Root Notebook</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./"><span class="brand-mark">R</span><span><strong>Arabic Root Notebook</strong><small>200 roots · Latin script</small></span></a>
+  <div class="search-wrap">
+    <input id="search" type="search" autocomplete="off" placeholder="Search dunya, dunia, adna, peace, k-t-b…">
+    <span class="search-key">/</span>
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+  <div class="view-toggle"><button id="bookMode" class="view-btn active">Book</button><button id="browseMode" class="view-btn">Browse</button></div>
+</header>
+
+<main>
+<section id="bookView" class="view view-book"><div class="book-stage"><div id="book" class="book"></div></div></section>
+<section id="browseView" class="view view-browse" hidden>
+  <div class="browse-intro"><div><span class="eyebrow">Browse all roots</span><h1>200 root families</h1></div><p>Click a card to focus it. Search works on roots, Latin spellings, English meanings, and Hebrew comparisons.</p></div>
+  <div id="grid" class="root-grid"></div>
+</section>
+</main>
+
+<nav class="navigator">
+<button id="prevBtn">← <span>Previous</span></button>
+<button id="tocBtn" class="where"><span id="position">—</span><strong id="currentRoot">—</strong></button>
+<button id="nextBtn"><span>Next</span> →</button>
+</nav>
+
+<dialog id="tocDialog" class="toc-dialog">
+<form method="dialog" class="toc-head"><div><span class="eyebrow">Go to</span><h2>Root index</h2></div><button class="icon-btn" value="close">×</button></form>
+<div id="tocList" class="toc-list"></div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.min.js"></script>
+<script src="./roots.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
