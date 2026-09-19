@@ -23,6 +23,12 @@ function buildBook(){
   pageFlip.on("flip",e=>{if(suppress)return; current=Math.max(0,Math.min(roots.length-1,e.data-2)); updateUI(false)});
   pageFlip.on("changeOrientation",()=>updateUI(false));
 }
+// StPageFlip starts gestures before click; keep Hebrew controls native, including cloned pages.
+for(const eventName of ["mousedown","touchstart"]){
+  bookEl.addEventListener(eventName,e=>{
+    if(e.target.closest(".hebrew"))e.stopPropagation();
+  },{capture:true});
+}
 function buildBrowse(){
   gridEl.innerHTML=roots.map((r,i)=>`<article class="root-card" id="${slug(r.root)}" data-index="${i}" tabindex="0"><div class="card-top"><div><div class="card-root">${r.root}</div><div class="card-core">${r.core}</div></div><div class="card-rank">${String(i+1).padStart(3,"0")}</div></div><div class="card-forms">${r.forms.slice(0,7).map(f=>`<span class="form-chip">${f.term}</span>`).join("")}</div><div class="card-hebrew">Hebrew: <strong>${r.hebrew.root}</strong> · ${r.hebrew.status}</div></article>`).join("");
   $$(".root-card",gridEl).forEach(c=>{const go=()=>selectRoot(+c.dataset.index,{scroll:true});c.onclick=go;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
