@@ -5,9 +5,8 @@ const bookEl=$("#book"),gridEl=$("#grid"),bookView=$("#bookView"),browseView=$("
 bookMode=$("#bookMode"),browseMode=$("#browseMode"),search=$("#search"),searchResults=$("#searchResults"),
 prevBtn=$("#prevBtn"),nextBtn=$("#nextBtn"),tocBtn=$("#tocBtn"),tocDialog=$("#tocDialog"),
 tocList=$("#tocList"),position=$("#position"),currentRoot=$("#currentRoot"),
-thanksBtn=$("#thanksBtn"),thanksDialog=$("#thanksDialog");
+thanksBtn=$("#thanksBtn"),thanksWrap=$("#thanksWrap"),thanksPanel=$("#thanksPanel");
 let current=0, bookPage=0, mode=localStorage.getItem("rootNotebookView")||"book", pageFlip=null;
-let thanksTimer=null;
 
 const slug=s=>s.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replaceAll("ʿ","ayn").replaceAll("ʾ","hamza").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
 
@@ -100,14 +99,29 @@ function setMode(next){
 function initial(){const h=location.hash.slice(1);if(h==="intro")return 1;if(h==="end")return roots.length+2;const i=roots.findIndex(r=>slug(r.root)===h);return i<0?0:pageIndex(i)}
 search.oninput=showSearch;search.onkeydown=e=>{if(e.key==="Escape"){searchResults.hidden=true;search.blur()} if(e.key==="Enter"){const f=$(".search-result",searchResults);if(f)f.click()}};
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))searchResults.hidden=true});
-document.addEventListener("keydown",e=>{if(thanksDialog.open||e.target.matches("input,textarea,select"))return;if(e.key==="/"){e.preventDefault();search.focus()}if(e.key==="ArrowRight")navigate(1);if(e.key==="ArrowLeft")navigate(-1);if(e.key.toLowerCase()==="b")setMode("book");if(e.key.toLowerCase()==="g")setMode("browse")});
+document.addEventListener("keydown",e=>{if(!thanksPanel.hidden){if(e.key==="Escape"){e.preventDefault();setThanksOpen(false)}return}if(e.target.matches("input,textarea,select"))return;if(e.key==="/"){e.preventDefault();search.focus()}if(e.key==="ArrowRight")navigate(1);if(e.key==="ArrowLeft")navigate(-1);if(e.key.toLowerCase()==="b")setMode("book");if(e.key.toLowerCase()==="g")setMode("browse")});
 prevBtn.onclick=()=>navigate(-1);nextBtn.onclick=()=>navigate(1);bookMode.onclick=()=>setMode("book");browseMode.onclick=()=>setMode("browse");tocBtn.onclick=()=>tocDialog.showModal();
-thanksBtn.onclick=()=>{
-  clearTimeout(thanksTimer);
-  thanksDialog.showModal();
-  thanksTimer=setTimeout(()=>thanksDialog.close(),30_000);
-};
-thanksDialog.addEventListener("close",()=>{clearTimeout(thanksTimer);thanksTimer=null});
+function sizeThanksPanel(){
+  thanksPanel.style.setProperty("--thanks-max-height",`${Math.max(100,window.innerHeight-thanksBtn.getBoundingClientRect().bottom-24)}px`);
+}
+function setThanksOpen(open){
+  if(open){sizeThanksPanel();searchResults.hidden=true}
+  else if(thanksPanel.contains(document.activeElement))thanksBtn.focus({preventScroll:true});
+  thanksPanel.hidden=!open;
+  thanksBtn.setAttribute("aria-expanded",String(open));
+}
+// Touch creates pointer-enter events too; only a mouse should trigger hover behavior.
+thanksWrap.addEventListener("pointerenter",e=>{if(e.pointerType==="mouse")setThanksOpen(true)});
+thanksWrap.addEventListener("pointerleave",e=>{
+  if(e.pointerType==="mouse"&&!thanksWrap.querySelector(":focus-visible"))setThanksOpen(false);
+});
+thanksWrap.addEventListener("focusin",()=>setThanksOpen(true));
+thanksWrap.addEventListener("focusout",e=>{
+  if(!thanksWrap.contains(e.relatedTarget)&&!thanksWrap.matches(":hover"))setThanksOpen(false);
+});
+thanksBtn.onclick=()=>setThanksOpen(true);
+document.addEventListener("pointerdown",e=>{if(!thanksWrap.contains(e.target))setThanksOpen(false)});
+window.addEventListener("resize",()=>{if(!thanksPanel.hidden)sizeThanksPanel()});
 window.addEventListener("resize",()=>updateUI(false));
 bookPage=initial();current=Math.max(0,Math.min(roots.length-1,bookPage-2));if(bookPage===0)mode="book";
 buildBook();buildBrowse();buildToc();setMode(mode);

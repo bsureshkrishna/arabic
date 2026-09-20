@@ -12,6 +12,7 @@ Static site; no framework and no build step.
 - `/` focuses search.
 - `b` = book, `g` = browse.
 - Hebrew comparisons are collapsed on book pages.
+- Hover over or focus **Thanks to…** to read the credits. On touchscreens, tap to open and tap outside to dismiss; Escape also dismisses the panel.
 
 ## Data
 
